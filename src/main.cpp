@@ -1,3 +1,14 @@
+/**
+ * A simple RGB LED strip controller
+ * Uses 3 potentiometers for H, S & V and buttons for saving/loading pre-sets
+ * 
+ * Released under WTFPL
+ * (with the exception of the included Button library, licensed under BSD)
+ * 
+ * See corresponding LICENSE files for more information.
+ * 
+ */
+
 #include <Arduino.h>
 
 #include <FastLED.h>
@@ -9,11 +20,9 @@
 #include "config.h"
 #include "modes.h"
 
-uint32_t timer1;
-
 CHSV hsv;
 uint8_t opMode;
-uint8_t settingId;
+uint32_t refreshTimer;
 
 // Buttons
 Button button_1(PIN_BUTTON_1);
@@ -33,8 +42,9 @@ void timerIsr()
 	button_4.update();
 }
 
-// print helper
+// serial print helper
 void print_hsv(void) {
+#ifdef DEBUG
 	Serial.print(F("H:"));
 	Serial.print(hsv.hue);
 	Serial.print(F(" S:"));
@@ -42,6 +52,7 @@ void print_hsv(void) {
 	Serial.print(F(" V:"));
 	Serial.print(hsv.val);
 	Serial.println();
+#endif
 }
 
 // load preset from EEPROM
@@ -85,9 +96,8 @@ void setup() {
 
 	FastLED.addLeds<NEOPIXEL, PIN_LED>(strip, NUM_LED);
 
-	timer1 = 0;
+	refreshTimer = 0;
 	opMode = MODE_MANUAL;
-	settingId = 0;
 }
 
 void loop() {
@@ -126,8 +136,8 @@ void loop() {
 
 	switch(opMode) {
 	case MODE_MANUAL:
-		if ((millis() - timer1) > REFRESH_RATE) {
-			timer1 = millis();
+		if ((millis() - refreshTimer) > REFRESH_RATE) {
+			refreshTimer = millis();
 
 			// shift values 2 bits right since we only code on 8 bits
 			hsv.hue = (uint8_t)(analogRead(PIN_POT_HUE) >> 2);

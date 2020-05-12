@@ -17,4 +17,6 @@ By pushing one of the three remaining switches >1s, the current setting will be 
 
 ## License
 
-WTFPL
+WTFPL - Do What The Fuck Tou Want To Public License
+with the exception of the included `Button` library (BSD licensed)
+
